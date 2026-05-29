@@ -541,18 +541,24 @@
 
                 let key = originalLength * 17 + 42;
 
-                const hexChunks = hexEncoded.split(/[-_|]/);
                 let decoded = '';
-
-                for (const hex of hexChunks) {
-                    if (hex.length === 4) {
-                        try {
-                            const code = parseInt(hex, 16);
-                            if (code >= 0 && code <= 0x10FFFF) {
-                                decoded += String.fromCharCode(code);
-                            }
-                        } catch (e) {}
+                let i = 0;
+                while (i < hexEncoded.length && decoded.length < 10000) {
+                    if (/[0-9a-f]/i.test(hexEncoded[i])) {
+                        const fourChar = hexEncoded.substring(i, i + 4);
+                        const validHex = fourChar.match(/^[0-9a-f]{2,4}$/i);
+                        if (validHex) {
+                            try {
+                                const code = parseInt(validHex[0], 16);
+                                if (code >= 0 && code <= 0x10FFFF) {
+                                    decoded += String.fromCharCode(code);
+                                }
+                                i += validHex[0].length;
+                                continue;
+                            } catch (e) {}
+                        }
                     }
+                    i++;
                 }
 
                 decoded = xorDecrypt(decoded, key);
